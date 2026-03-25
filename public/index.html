@@ -8,38 +8,59 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.80.1/phaser.min.js"></script>
     <!-- We can also add Three.js but Phaser is best for a 2D Platformer as requested -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        body { margin: 0; padding: 0; overflow: hidden; background-color: #050510; font-family: 'Orbitron', sans-serif; touch-action: none; }
-        #game-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 10; }
-        .ui-layer { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 20; pointer-events: none; }
-        .interactive { pointer-events: auto; }
-        .text-glow { text-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
-        
+        /* === LANDSCAPE MOBILE FIXES === */
+        #menu-overlay {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            align-items: flex-start;
+            padding: 8px;
+        }
+        /* Center menus when there's enough height, scroll when not */
+        #menu-overlay > div:not(.hidden) {
+            margin: auto;
+        }
+
+        /* Compact menus on short screens (landscape phones) */
+        @media (max-height: 500px) {
+            #main-menu, #pause-menu, #game-over-menu, #win-menu {
+                gap: 6px !important;
+                padding: 10px 14px !important;
+            }
+            #main-menu h1, #win-menu h2 { font-size: 1.6rem !important; line-height: 1.1; }
+            #pause-menu h2, #game-over-menu h2 { font-size: 1.4rem !important; }
+            .menu-btn { padding: 8px 12px !important; font-size: 0.85rem !important; }
+            .menu-info { display: none; } /* hide instructions on tiny screens */
+            .menu-score { font-size: 0.9rem !important; }
+            #main-menu .divider { display: none; }
+        }
+
         /* Touch Controls */
         .touch-container { display: none; }
         .arrow-btn {
-            position: absolute; bottom: 40px; width: 70px; height: 70px; border-radius: 15px;
+            position: absolute; bottom: 16px; width: 60px; height: 60px; border-radius: 12px;
             background: rgba(0, 255, 255, 0.2); border: 2px solid rgba(0, 255, 255, 0.5); color: #0ff; text-shadow: 0 0 5px #0ff;
-            display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 30px;
+            display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 26px;
             user-select: none; z-index: 50;
         }
-        #btn-left { left: 40px; }
-        #btn-right { left: 130px; }
+        #btn-left { left: 16px; }
+        #btn-right { left: 88px; }
         .action-btn {
-            position: absolute; bottom: 50px; width: 80px; height: 80px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-weight: bold;
+            position: absolute; bottom: 16px; width: 60px; height: 60px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px;
             user-select: none;
         }
-        #btn-jump { right: 40px; background: rgba(255, 0, 255, 0.2); border: 2px solid rgba(255, 0, 255, 0.5); color: #f0f; text-shadow: 0 0 5px #f0f; }
-        #btn-slide { right: 140px; background: rgba(255, 255, 0, 0.2); border: 2px solid rgba(255, 255, 0, 0.5); color: #ff0; text-shadow: 0 0 5px #ff0; }
-        
+        #btn-jump { right: 16px; background: rgba(255, 0, 255, 0.2); border: 2px solid rgba(255, 0, 255, 0.5); color: #f0f; text-shadow: 0 0 5px #f0f; }
+        #btn-slide { right: 88px; background: rgba(255, 255, 0, 0.2); border: 2px solid rgba(255, 255, 0, 0.5); color: #ff0; text-shadow: 0 0 5px #ff0; }
+
+        /* HUD compact on mobile */
         @media (max-width: 768px) {
             .touch-container { display: block; }
-            #btn-pause { position: absolute; top: 10px; right: 10px; z-index: 50; padding: 4px 8px; font-size: 12px; }
+            #hud .hud-text { font-size: 0.85rem !important; }
+            #btn-pause { padding: 3px 8px !important; font-size: 11px !important; }
         }
         
         #portrait-warning { display: none; position: absolute; z-index: 9999; width: 100vw; height: 100vh; background: #000; flex-direction: column; align-items: center; justify-content: center; }
-        @media screen and (max-width: 768px) and (orientation: portrait) {
+        @media screen and (max-width: 900px) and (orientation: portrait) {
             #portrait-warning { display: flex; }
         }
     </style>
@@ -60,16 +81,14 @@
 <div id="ui-layer" class="ui-layer flex flex-col justify-between p-4">
     <!-- HUD -->
     <div id="hud" class="hidden flex justify-between items-start w-full transition-opacity duration-300">
-        <div class="flex flex-col gap-1">
-            <div class="text-2xl font-bold text-cyan-400 text-glow">SCORE: <span id="score-val">0</span></div>
-            <div class="text-xl font-bold text-purple-400 text-glow">COMBO: <span id="combo-val">x1</span></div>
-            <div class="text-xl font-bold text-yellow-400 text-glow">LEVEL: <span id="level-val">1</span></div>
+        <div class="flex flex-col gap-0.5">
+            <div class="hud-text text-lg md:text-2xl font-bold text-cyan-400 text-glow">SCORE: <span id="score-val">0</span></div>
+            <div class="hud-text text-base md:text-xl font-bold text-purple-400 text-glow">COMBO: <span id="combo-val">x1</span></div>
+            <div class="hud-text text-base md:text-xl font-bold text-yellow-400 text-glow">LEVEL: <span id="level-val">1</span></div>
         </div>
-        <div class="flex flex-col items-end gap-2">
-            <div class="flex gap-2" id="health-bar">
-                <!-- Hearts via JS -->
-            </div>
-            <button id="btn-pause" class="interactive mt-2 px-4 py-2 border-2 border-cyan-500 text-cyan-500 font-bold hover:bg-cyan-500 hover:text-black transition-all text-glow shadow-[0_0_10px_rgba(0,255,255,0.5)]">PAUSE</button>
+        <div class="flex flex-col items-end gap-1">
+            <div class="flex gap-2" id="health-bar"></div>
+            <button id="btn-pause" class="interactive mt-1 px-3 py-1 border-2 border-cyan-500 text-cyan-500 font-bold hover:bg-cyan-500 hover:text-black transition-all text-glow shadow-[0_0_10px_rgba(0,255,255,0.5)] text-sm">PAUSE</button>
         </div>
     </div>
 

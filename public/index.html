@@ -10,8 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; padding: 0; overflow: hidden; background-color: #050510; font-family: 'Orbitron', sans-serif; touch-action: none; }
-        #game-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 10; }
-        .ui-layer { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 20; pointer-events: none; }
+        #game-container { position: absolute; top: 0; left: 0; width: 100dvw; height: 100dvh; z-index: 10; }
+        .ui-layer { position: absolute; top: 0; left: 0; width: 100dvw; height: 100dvh; z-index: 20; pointer-events: none; }
         .interactive { pointer-events: auto; }
         .text-glow { text-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
         
@@ -37,9 +37,14 @@
             #btn-pause { position: absolute; top: 10px; right: 10px; z-index: 50; padding: 4px 8px; font-size: 12px; }
         }
         
-        #portrait-warning { display: none; position: absolute; z-index: 9999; width: 100vw; height: 100vh; background: #000; flex-direction: column; align-items: center; justify-content: center; }
+        #portrait-warning { display: none; position: absolute; z-index: 9999; width: 100dvw; height: 100dvh; background: #000; flex-direction: column; align-items: center; justify-content: center; }
         @media screen and (max-width: 1024px) and (orientation: portrait) {
             #portrait-warning { display: flex; }
+        }
+        @keyframes rotateDevice {
+            0% { transform: rotate(0deg); }
+            40% { transform: rotate(90deg); }
+            100% { transform: rotate(90deg); }
         }
     </style>
 </head>
@@ -47,7 +52,10 @@
 
 <!-- Portrait warning -->
 <div id="portrait-warning">
-    <svg class="w-24 h-24 mb-4 text-cyan-500 animate-[spin_3s_ease-in-out_infinite]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+    <svg class="w-24 h-24 mb-4 text-cyan-500" style="animation: rotateDevice 2s ease-in-out infinite alternate;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <rect x="7" y="2" width="10" height="20" rx="2" ry="2" stroke-width="2"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01"/>
+    </svg>
     <h1 class="text-3xl font-bold text-cyan-400 text-center">PLEASE ROTATE<br>YOUR DEVICE</h1>
     <p class="text-gray-400 mt-4 text-center px-4">This game requires landscape mode to see what is ahead of you!</p>
 </div>
@@ -65,10 +73,10 @@
             <div class="text-xl font-bold text-yellow-400 text-glow">LEVEL: <span id="level-val">1</span></div>
         </div>
         <div class="flex flex-col items-end gap-2">
-            <div class="flex gap-2" id="health-bar">
+            <button id="btn-pause" class="interactive px-4 py-2 border-2 border-cyan-500 text-cyan-500 font-bold hover:bg-cyan-500 hover:text-black transition-all text-glow shadow-[0_0_10px_rgba(0,255,255,0.5)] bg-black/50">PAUSE</button>
+            <div class="flex gap-2 mt-2" id="health-bar">
                 <!-- Hearts via JS -->
             </div>
-            <button id="btn-pause" class="interactive mt-2 px-4 py-2 border-2 border-cyan-500 text-cyan-500 font-bold hover:bg-cyan-500 hover:text-black transition-all text-glow shadow-[0_0_10px_rgba(0,255,255,0.5)]">PAUSE</button>
         </div>
     </div>
 
@@ -854,6 +862,15 @@ document.getElementById('btn-endless-mode').addEventListener('click', () => rese
 document.getElementById('btn-restart-pause').addEventListener('click', () => resetGame(GameState.isEndless));
 document.getElementById('btn-restart-go').addEventListener('click', () => resetGame(GameState.isEndless));
 document.getElementById('btn-continue-endless').addEventListener('click', () => resetGame(true));
+
+// Auto-immersion interaction hooks anywhere on the screen
+const autoFullscreen = () => {
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    }
+};
+document.addEventListener('click', autoFullscreen, { passive: true });
+document.addEventListener('touchstart', autoFullscreen, { passive: true });
 
 const togglePause = () => {
     if(!game) return;

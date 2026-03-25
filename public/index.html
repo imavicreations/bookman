@@ -31,10 +31,9 @@
             user-select: none;
         }
         #btn-jump { right: 40px; background: rgba(255, 0, 255, 0.2); border: 2px solid rgba(255, 0, 255, 0.5); color: #f0f; text-shadow: 0 0 5px #f0f; }
-        #btn-slide { right: 140px; background: rgba(255, 255, 0, 0.2); border: 2px solid rgba(255, 255, 0, 0.5); color: #ff0; text-shadow: 0 0 5px #ff0; }
         
         @media (max-width: 1024px) {
-            .touch-container { display: block; }
+            body.game-active .touch-container { display: block; }
             #btn-pause { position: absolute; top: 10px; right: 10px; z-index: 50; padding: 4px 8px; font-size: 12px; }
         }
         
@@ -81,7 +80,6 @@
     <div class="touch-container interactive">
         <div id="btn-left" class="arrow-btn">◄</div>
         <div id="btn-right" class="arrow-btn">►</div>
-        <div id="btn-slide" class="action-btn text-sm">SLIDE</div>
         <div id="btn-jump" class="action-btn text-sm">JUMP</div>
     </div>
 
@@ -825,6 +823,13 @@ function resetGame(endless) {
     GameState.score = 0; GameState.combo = 1; GameState.level = 1; GameState.health = 3;
     GameState.isEndless = endless;
     sfx.init();
+
+    // Full screen immersion
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(e => console.log(e));
+    }
+    
+    document.body.classList.add('game-active');
     
     if(!game) {
         game = new Phaser.Game(config);
@@ -871,6 +876,12 @@ document.getElementById('btn-resume').addEventListener('click', togglePause);
     document.getElementById(id).addEventListener('click', () => {
         if(game) game.scene.stop('GameScene');
         document.getElementById('hud').classList.add('hidden');
+        document.body.classList.remove('game-active');
+        
+        if (document.fullscreenElement && document.exitFullscreen) {
+            document.exitFullscreen().catch(e => {});
+        }
+        
         UI.updateHUD(); // refresh high score display
         UI.showMenu('main-menu');
     });
@@ -880,7 +891,6 @@ document.getElementById('btn-resume').addEventListener('click', togglePause);
 const btnLeft = document.getElementById('btn-left');
 const btnRight = document.getElementById('btn-right');
 const btnJump = document.getElementById('btn-jump');
-const btnSlide = document.getElementById('btn-slide');
 
 const mapBtn = (btn, actDown, actUp) => {
     btn.addEventListener('touchstart', (e)=>{
@@ -894,7 +904,6 @@ const mapBtn = (btn, actDown, actUp) => {
         e.preventDefault(); 
         btn.style.transform='scale(1)'; 
         if (btn.id === 'btn-jump') btn.style.background = 'rgba(255, 0, 255, 0.2)';
-        else if (btn.id === 'btn-slide') btn.style.background = 'rgba(255, 255, 0, 0.2)';
         else btn.style.background = 'rgba(0, 255, 255, 0.2)';
         
         if(window.activeGameScene) actUp(window.activeGameScene);
@@ -907,7 +916,6 @@ const mapBtn = (btn, actDown, actUp) => {
 mapBtn(btnLeft, s=>{ s.vJoy={x:-1, y:0}; }, s=>{ s.vJoy={x:0, y:0}; });
 mapBtn(btnRight, s=>{ s.vJoy={x:1, y:0}; }, s=>{ s.vJoy={x:0, y:0}; });
 mapBtn(btnJump, s=>{s.vJumpFlag=true; s.vJumpHold=true;}, s=>s.vJumpHold=false);
-mapBtn(btnSlide, s=>s.vSlideHold=true, s=>s.vSlideHold=false);
 
 </script>
 </body>

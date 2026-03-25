@@ -33,13 +33,13 @@
         #btn-jump { right: 40px; background: rgba(255, 0, 255, 0.2); border: 2px solid rgba(255, 0, 255, 0.5); color: #f0f; text-shadow: 0 0 5px #f0f; }
         #btn-slide { right: 140px; background: rgba(255, 255, 0, 0.2); border: 2px solid rgba(255, 255, 0, 0.5); color: #ff0; text-shadow: 0 0 5px #ff0; }
         
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
             .touch-container { display: block; }
             #btn-pause { position: absolute; top: 10px; right: 10px; z-index: 50; padding: 4px 8px; font-size: 12px; }
         }
         
         #portrait-warning { display: none; position: absolute; z-index: 9999; width: 100vw; height: 100vh; background: #000; flex-direction: column; align-items: center; justify-content: center; }
-        @media screen and (max-width: 768px) and (orientation: portrait) {
+        @media screen and (max-width: 1024px) and (orientation: portrait) {
             #portrait-warning { display: flex; }
         }
     </style>
